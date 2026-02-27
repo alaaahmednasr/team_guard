@@ -37,6 +37,12 @@ flutter pub get
 dart pub get
 ```
 
+## Uninstall
+
+```bash
+flutter pub remove team_guard custom_lint
+```
+
 ## Setup (Required)
 
 1. Initialize Team Guard in your project root:
