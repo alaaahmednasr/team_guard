@@ -167,14 +167,38 @@ widgets:
   Text:
     replacement: CustomText
     # import must be a package path only (no Dart import statement).
-    # import: package:your_app/custom_text.dart
+    # import: package:your_app/core/ui/custom_text.dart
+    severity: error
+
+  ElevatedButton:
+    replacement: AppElevatedButton
+    # import must be a package path only (no Dart import statement).
+    # import: package:your_app/core/ui/buttons/app_elevated_button.dart
     severity: error
 
 classes:
   Colors:
     replacement: AppColors
     # import must be a package path only (no Dart import statement).
-    # import: package:your_app/app_colors.dart
+    # import: package:your_app/core/theme/app_colors.dart
+    severity: error
+
+  Dio:
+    replacement: AppDio
+    # import must be a package path only (no Dart import statement).
+    # import: package:your_app/core/network/app_dio.dart
+    severity: error
+
+  GetIt:
+    replacement: AppLocator
+    # import must be a package path only (no Dart import statement).
+    # import: package:your_app/core/di/app_locator.dart
+    severity: error
+
+  Cubit:
+    replacement: AppCubit
+    # import must be a package path only (no Dart import statement).
+    # import: package:your_app/core/state/app_cubit.dart
     severity: error
 ''';
 }

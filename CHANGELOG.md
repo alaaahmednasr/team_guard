@@ -1,3 +1,11 @@
+## 1.0.14
+
+- Update default generated `team_guard.yaml` template to include:
+  - `widgets`: `Text`, `ElevatedButton`
+  - `classes`: `Colors`, `Dio`, `GetIt`, `Cubit`
+- Improve generated color helper template to keep internal tokens flexible (`int` or `Color`) while exposing `Color` getters for direct Flutter widget usage.
+- Refresh README to document the updated color pattern and latest install version.
+
 ## 1.0.13
 
 - Publish follow-up release with the latest lint/fix and scaffolding updates from `1.0.12`.

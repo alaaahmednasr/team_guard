@@ -24,7 +24,7 @@ Add dependencies to your app's `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  team_guard: ^1.0.13
+  team_guard: ^1.0.14
 ```
 
 Then run:
@@ -168,12 +168,13 @@ import 'package:flutter/material.dart';
 class AppColors {
   const AppColors._();
 
-  static const primary = 0xFF6200EE;
-  static const primaryVariant = 0xFF3700B3;
-  static const secondary = 0xFF03DAC6;
-  static const secondaryVariant = 0xFF018786;
-  static const text = Color(0xFF000000);
-  static Color overlay = const Color.fromARGB(5, 2, 4, 5);
+  static const Object _primaryToken = 0xFF6200EE;
+  static const Object _onErrorToken = 0xFFFFFFFF;
+  static const Object _textToken = Color(0xFF000000);
+
+  static Color get primary => colorOf(_primaryToken);
+  static Color get onError => colorOf(_onErrorToken);
+  static Color get text => colorOf(_textToken);
 
   static Color colorOf(Object value) {
     if (value is Color) return value;
@@ -187,7 +188,7 @@ Usage example when an API requires `Color`:
 
 ```dart
 colorScheme: ColorScheme.fromSeed(
-  seedColor: AppColors.colorOf(AppColors.primary),
+  seedColor: AppColors.primary,
 ),
 ```
 
