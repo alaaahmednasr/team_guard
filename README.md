@@ -6,12 +6,12 @@ A custom lint plugin for Dart and Flutter that helps teams enforce UI rules by b
 
 - Integrates with `custom_lint` for live IDE feedback.
 - Supports configurable restrictions for both widgets and classes.
-- Supports `info`, `warning`, and `error` severities per rule.
+- Supports `warning` and `error` severities per rule.
 - Provides quick-fix suggestions with replacement names/imports.
 
 ## Prerequisites
 
-- Dart SDK `>=3.3.0 <4.0.0`
+- Dart SDK `>=3.0.0 <4.0.0`
 - `custom_lint` installed in the target project
 - IDE plugin:
   - VS Code: `Custom Lint`
@@ -23,7 +23,7 @@ Add dependencies to your app's `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  team_guard: ^1.0.6
+  team_guard: ^1.0.8
   custom_lint: ^0.8.1
 ```
 
@@ -37,12 +37,6 @@ flutter pub get
 dart pub get
 ```
 
-## Uninstall
-
-```bash
-flutter pub remove team_guard custom_lint
-```
-
 ## Setup (Required)
 
 1. Initialize Team Guard in your project root:
@@ -52,7 +46,7 @@ dart run team_guard:init
 ```
 
 This command:
-- creates `team_guard.yaml` if missing
+- generates `team_guard.yaml` automatically in the project root (if missing)
 - creates `analysis_options.yaml` if missing
 - adds `custom_lint` plugin under `analyzer.plugins` if missing
 
@@ -66,7 +60,7 @@ dart run custom_lint
 
 ## Configuration
 
-Create `team_guard.yaml` in your project root:
+After running `dart run team_guard:init`, you will find `team_guard.yaml` generated in your project root. Edit it as needed:
 
 ```yaml
 widgets:
@@ -112,7 +106,6 @@ import: "import 'package:your_app/widgets/custom_text.dart';"
 
 ### Severity Values
 
-- `info`
 - `warning`
 - `error`
 
@@ -152,6 +145,14 @@ analyzer:
 - If still missing, create `team_guard.yaml` manually using the example above.
 
 ## Additional Information
+
+
+## To Uninstall
+
+```bash
+flutter pub remove team_guard custom_lint
+```
+
 
 - Package: https://pub.dev/packages/team_guard
 - custom_lint docs: https://pub.dev/packages/custom_lint

@@ -1,3 +1,16 @@
+## 1.0.8
+
+- Lower minimum Dart SDK constraint to `>=3.0.0 <4.0.0`.
+- Update README:
+  - document that `team_guard.yaml` is generated automatically by `dart run team_guard:init`
+  - remove `info` from supported severity values (`warning`, `error` only)
+  - refresh install snippet to `team_guard: ^1.0.8`
+
+## 1.0.7
+
+- Add uninstall command to README:
+  - `flutter pub remove team_guard custom_lint`
+
 ## 1.0.6
 
 - Update docs and examples to use `severity: error` by default.
