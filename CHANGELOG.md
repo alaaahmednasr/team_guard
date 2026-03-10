@@ -1,3 +1,8 @@
+## 1.0.15
+
+- Change generated Flutter color-class templates to use `static const Color ... = Color(...)` fields directly.
+- Update README examples to match the generated `AppColors` shape and latest install version.
+
 ## 1.0.14
 
 - Update default generated `team_guard.yaml` template to include:
