@@ -24,7 +24,7 @@ Add dependencies to your app's `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  team_guard: ^1.0.12
+  team_guard: ^1.0.13
 ```
 
 Then run:

@@ -1,3 +1,7 @@
+## 1.0.13
+
+- Publish follow-up release with the latest lint/fix and scaffolding updates from `1.0.12`.
+
 ## 1.0.12
 
 - Enforce class restrictions in type references (`NamedType`) such as:
