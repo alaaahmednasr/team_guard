@@ -1,3 +1,14 @@
+## 1.0.9
+
+- Add `custom_lint` to runtime dependencies so `dart run custom_lint` is available after installing `team_guard`.
+- Improve quick-fix import behavior:
+  - accept `import` values in both package-path form and full Dart import statement form
+  - auto-detect replacement imports from `lib/` when a replacement class is found in exactly one file
+- Enhance `dart run team_guard:init`:
+  - scaffold missing replacement files in `lib/core` from `team_guard.yaml`
+  - keep init idempotent by skipping files that already exist
+- Refresh README for setup, auto-import, and init scaffolding flow.
+
 ## 1.0.8
 
 - Lower minimum Dart SDK constraint to `>=3.0.0 <4.0.0`.
