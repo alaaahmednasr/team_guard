@@ -12,7 +12,6 @@ A custom lint plugin for Dart and Flutter that helps teams enforce UI rules by b
 ## Prerequisites
 
 - Dart SDK `>=3.0.0 <4.0.0`
-- `custom_lint` installed in the target project
 - IDE plugin:
   - VS Code: `Custom Lint`
   - Android Studio / IntelliJ: `Custom Lint`
@@ -24,7 +23,6 @@ Add dependencies to your app's `pubspec.yaml`:
 ```yaml
 dev_dependencies:
   team_guard: ^1.0.8
-  custom_lint: ^0.8.1
 ```
 
 Then run:
@@ -49,12 +47,15 @@ This command:
 - generates `team_guard.yaml` automatically in the project root (if missing)
 - creates `analysis_options.yaml` if missing
 - adds `custom_lint` plugin under `analyzer.plugins` if missing
+- generates missing replacement files in `lib/core` based on `team_guard.yaml`
 
 2. Run the linter:
 
 ```bash
 dart run custom_lint
 ```
+
+`custom_lint` is included transitively by `team_guard`, so the command is available after `pub get`.
 
 3. If your IDE still does not show lints, restart analysis server/IDE.
 
@@ -82,9 +83,14 @@ classes:
 
 Full setup example: [`example/team_guard_example.dart`](example/team_guard_example.dart)
 
+When you run `dart run team_guard:init`, replacement stubs are created automatically in `lib/core` (for example, `CustomText` -> `lib/core/custom_text.dart`) if the files do not already exist.
+
 ### Import Field Format
 
-`import` in `team_guard.yaml` must be a package path only.
+`import` in `team_guard.yaml` is optional.
+
+- If provided, Team Guard uses it directly for quick-fix auto-import.
+- If omitted, Team Guard tries to auto-detect the import from your `lib/` folder when the replacement class exists in exactly one file.
 
 Correct:
 
@@ -98,7 +104,7 @@ or
 import: "package:your_app/widgets/custom_text.dart"
 ```
 
-Wrong:
+Also accepted:
 
 ```yaml
 import: "import 'package:your_app/widgets/custom_text.dart';"
@@ -144,15 +150,13 @@ analyzer:
 - Run `dart run custom_lint` from the project root.
 - If still missing, create `team_guard.yaml` manually using the example above.
 
-## Additional Information
-
-
 ## To Uninstall
 
 ```bash
-flutter pub remove team_guard custom_lint
+flutter pub remove team_guard
 ```
 
+## Additional Information
 
 - Package: https://pub.dev/packages/team_guard
 - custom_lint docs: https://pub.dev/packages/custom_lint

@@ -6,7 +6,7 @@ void main(List<String> args) {
   if (args.contains('--help') || args.contains('-h')) {
     stdout.writeln('Usage: dart run team_guard:init');
     stdout.writeln(
-      'Creates team_guard.yaml and configures custom_lint in analysis_options.yaml.',
+      'Creates team_guard.yaml, configures custom_lint, and scaffolds replacement files in lib/core.',
     );
     return;
   }
@@ -52,6 +52,17 @@ void main(List<String> args) {
       );
       exitCode = 1;
       break;
+  }
+
+  final config = WidgetGuardConfig.load(configFile.parent.path);
+  final scaffoldResult = _createReplacementFiles(configFile.parent.path, config);
+  if (scaffoldResult.createdFiles.isNotEmpty) {
+    stdout.writeln('Created replacement files in lib/core:');
+    for (final filePath in scaffoldResult.createdFiles) {
+      stdout.writeln('- $filePath');
+    }
+  } else {
+    stdout.writeln('No new replacement files were needed in lib/core.');
   }
 }
 
@@ -190,3 +201,116 @@ int _blockEndIndex(List<String> lines, int start, int indent) {
 }
 
 int _indentOf(String line) => line.length - line.trimLeft().length;
+
+class _ScaffoldResult {
+  final List<String> createdFiles;
+
+  const _ScaffoldResult({required this.createdFiles});
+}
+
+enum _ReplacementKind {
+  widget,
+  helperClass,
+}
+
+_ScaffoldResult _createReplacementFiles(
+  String projectRoot,
+  WidgetGuardConfig config,
+) {
+  final coreDir = Directory(
+    '$projectRoot${Platform.pathSeparator}lib${Platform.pathSeparator}core',
+  );
+  coreDir.createSync(recursive: true);
+  final isFlutterProject = _isFlutterProject(projectRoot);
+
+  final replacements = <String, _ReplacementKind>{};
+
+  for (final restriction in config.classes.values) {
+    replacements.putIfAbsent(
+      restriction.replacement,
+      () => _ReplacementKind.helperClass,
+    );
+  }
+
+  for (final restriction in config.widgets.values) {
+    replacements[restriction.replacement] = _ReplacementKind.widget;
+  }
+
+  final createdFiles = <String>[];
+
+  for (final entry in replacements.entries) {
+    final replacement = entry.key.trim();
+    if (replacement.isEmpty) continue;
+
+    final fileName = '${_toSnakeCase(replacement)}.dart';
+    final filePath = '${coreDir.path}${Platform.pathSeparator}$fileName';
+    final file = File(filePath);
+    if (file.existsSync()) {
+      continue;
+    }
+
+    final content = entry.value == _ReplacementKind.widget
+        ? _widgetTemplate(replacement, isFlutterProject: isFlutterProject)
+        : _classTemplate(replacement);
+
+    file.writeAsStringSync(content);
+    createdFiles.add(filePath);
+  }
+
+  return _ScaffoldResult(createdFiles: createdFiles);
+}
+
+String _toSnakeCase(String input) {
+  if (input.isEmpty) return input;
+
+  final buffer = StringBuffer();
+  for (var i = 0; i < input.length; i++) {
+    final char = input[i];
+    final isUpper = char.toUpperCase() == char && char.toLowerCase() != char;
+    if (isUpper && i > 0) {
+      final previous = input[i - 1];
+      final wasLower = previous.toLowerCase() == previous &&
+          previous.toUpperCase() != previous;
+      if (wasLower) {
+        buffer.write('_');
+      }
+    }
+    buffer.write(char.toLowerCase());
+  }
+  return buffer.toString();
+}
+
+String _widgetTemplate(String className, {required bool isFlutterProject}) {
+  if (!isFlutterProject) {
+    return _classTemplate(className);
+  }
+
+  return "import 'package:flutter/widgets.dart';\n"
+      '\n'
+      'class $className extends StatelessWidget {\n'
+      '  const $className({super.key});\n'
+      '\n'
+      '  @override\n'
+      '  Widget build(BuildContext context) {\n'
+      '    return const SizedBox.shrink();\n'
+      '  }\n'
+      '}\n';
+}
+
+String _classTemplate(String className) {
+  return 'class $className {\n'
+      '  const $className._();\n'
+      '}\n';
+}
+
+bool _isFlutterProject(String projectRoot) {
+  final pubspecFile = File('$projectRoot${Platform.pathSeparator}pubspec.yaml');
+  if (!pubspecFile.existsSync()) return false;
+
+  try {
+    final content = pubspecFile.readAsStringSync();
+    return RegExp(r'^\s*flutter\s*:', multiLine: true).hasMatch(content);
+  } catch (_) {
+    return false;
+  }
+}
