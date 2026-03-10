@@ -6,8 +6,10 @@ A custom lint plugin for Dart and Flutter that helps teams enforce UI rules by b
 
 - Integrates with `custom_lint` for live IDE feedback.
 - Supports configurable restrictions for both widgets and classes.
+- Class restrictions are enforced for both prefixed access (for example `Colors.red`) and constructor usage (for example `Color(...)`).
 - Supports `warning` and `error` severities per rule.
 - Provides quick-fix suggestions with replacement names/imports.
+- Scaffolds Flutter-friendly starter files for common replacements such as text widgets and color classes.
 
 ## Prerequisites
 
@@ -22,7 +24,7 @@ Add dependencies to your app's `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  team_guard: ^1.0.10
+  team_guard: ^1.0.11
 ```
 
 Then run:
@@ -57,7 +59,7 @@ This command:
 - generates `team_guard.yaml` automatically in the project root (if missing)
 - creates `analysis_options.yaml` if missing
 - adds `custom_lint` plugin under `analyzer.plugins` if missing
-- generates missing replacement files in `lib/core` based on `team_guard.yaml`
+- generates missing replacement files in `lib/core` based on `team_guard.yaml` (never overwrites existing files)
 
 ```bash
 dart run custom_lint
@@ -92,6 +94,46 @@ classes:
 Full setup example: [`example/team_guard_example.dart`](example/team_guard_example.dart)
 
 When you run `dart run team_guard:init`, replacement stubs are created automatically in `lib/core` (for example, `CustomText` -> `lib/core/custom_text.dart`) if the files do not already exist.
+
+If a file already exists, Team Guard keeps your current file unchanged.  
+To regenerate with the latest template, either edit the file manually or delete it and run `dart run team_guard:init` again.
+
+### Generated Starter Templates (Flutter projects)
+
+For text-like replacement names (contains `text`), Team Guard generates a starter similar to:
+
+```dart
+import 'package:flutter/widgets.dart';
+
+class CustomText extends StatelessWidget {
+  const CustomText({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    );
+  }
+}
+```
+
+For color-like replacement names (contains `color`), Team Guard generates a starter similar to:
+
+```dart
+import 'package:flutter/material.dart';
+
+class AppColors {
+  const AppColors._();
+
+  static const Color primary = Color(0xFF6200EE);
+  static const Color primaryVariant = Color(0xFF3700B3);
+  static const Color secondary = Color(0xFF03DAC6);
+  static const Color secondaryVariant = Color(0xFF018786);
+}
+```
 
 ### Import Field Format
 

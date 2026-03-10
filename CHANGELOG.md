@@ -1,3 +1,12 @@
+## 1.0.11
+
+- Enforce class restrictions in constructor usage as well as prefixed access.
+- Apply the same symbol lookup in quick-fix for both `widgets` and `classes`.
+- Improve `team_guard:init` scaffolding in Flutter projects:
+  - generate richer starter templates for text-like replacement widgets
+  - generate color palette starter templates for color-like helper classes
+- Update README with regeneration behavior (existing files are not overwritten) and starter template examples.
+
 ## 1.0.10
 
 - Add `dart run team_guard:setup` command to run `team_guard:init` then `custom_lint` in one step.

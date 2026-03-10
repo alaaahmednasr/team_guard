@@ -47,9 +47,9 @@ class ForbiddenWidgetRule extends DartLintRule {
 
     context.registry.addInstanceCreationExpression((node) {
       final typeNode = node.constructorName.type;
-      final widgetName = typeNode.name.lexeme;
+      final symbolName = typeNode.name.lexeme;
 
-      final restriction = config.widgets[widgetName];
+      final restriction = _restrictionForSymbol(config, symbolName);
       if (restriction == null) return;
 
       final replacement = restriction.replacement;
@@ -62,7 +62,7 @@ class ForbiddenWidgetRule extends DartLintRule {
       }
 
       final message =
-          '$widgetName is restricted. A custom class is available: $replacement. Use it instead.';
+          '$symbolName is restricted. A custom class is available: $replacement. Use it instead.';
       final nameToken = typeNode.name;
       final lintCode = _codeForSeverity(restriction.severity);
 
@@ -105,5 +105,12 @@ class ForbiddenWidgetRule extends DartLintRule {
       default:
         return _infoCode;
     }
+  }
+
+  WidgetRestriction? _restrictionForSymbol(
+    WidgetGuardConfig config,
+    String symbolName,
+  ) {
+    return config.widgets[symbolName] ?? config.classes[symbolName];
   }
 }

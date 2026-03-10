@@ -252,7 +252,10 @@ _ScaffoldResult _createReplacementFiles(
 
     final content = entry.value == _ReplacementKind.widget
         ? _widgetTemplate(replacement, isFlutterProject: isFlutterProject)
-        : _classTemplate(replacement);
+        : _classTemplate(
+            replacement,
+            isFlutterProject: isFlutterProject,
+          );
 
     file.writeAsStringSync(content);
     createdFiles.add(filePath);
@@ -283,7 +286,25 @@ String _toSnakeCase(String input) {
 
 String _widgetTemplate(String className, {required bool isFlutterProject}) {
   if (!isFlutterProject) {
-    return _classTemplate(className);
+    return _classTemplate(className, isFlutterProject: false);
+  }
+
+  if (_isTextWidgetClass(className)) {
+    return "import 'package:flutter/widgets.dart';\n"
+        '\n'
+        'class $className extends StatelessWidget {\n'
+        '  const $className({super.key, required this.text});\n'
+        '\n'
+        '  final String text;\n'
+        '\n'
+        '  @override\n'
+        '  Widget build(BuildContext context) {\n'
+        '    return Text(\n'
+        '      text,\n'
+        '      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),\n'
+        '    );\n'
+        '  }\n'
+        '}\n';
   }
 
   return "import 'package:flutter/widgets.dart';\n"
@@ -298,11 +319,30 @@ String _widgetTemplate(String className, {required bool isFlutterProject}) {
       '}\n';
 }
 
-String _classTemplate(String className) {
+String _classTemplate(String className, {required bool isFlutterProject}) {
+  if (isFlutterProject && _isColorClass(className)) {
+    return "import 'package:flutter/material.dart';\n"
+        '\n'
+        'class $className {\n'
+        '  const $className._();\n'
+        '\n'
+        '  static const Color primary = Color(0xFF6200EE);\n'
+        '  static const Color primaryVariant = Color(0xFF3700B3);\n'
+        '  static const Color secondary = Color(0xFF03DAC6);\n'
+        '  static const Color secondaryVariant = Color(0xFF018786);\n'
+        '}\n';
+  }
+
   return 'class $className {\n'
       '  const $className._();\n'
       '}\n';
 }
+
+bool _isTextWidgetClass(String className) =>
+    className.toLowerCase().contains('text');
+
+bool _isColorClass(String className) =>
+    className.toLowerCase().contains('color');
 
 bool _isFlutterProject(String projectRoot) {
   final pubspecFile = File('$projectRoot${Platform.pathSeparator}pubspec.yaml');

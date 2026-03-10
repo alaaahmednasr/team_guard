@@ -23,9 +23,9 @@ class ForbiddenWidgetFix extends DartFix {
     context.registry.addInstanceCreationExpression((node) {
       final typeNode = node.constructorName.type;
       final nameToken = typeNode.name;
-      final widgetName = nameToken.lexeme;
+      final symbolName = nameToken.lexeme;
 
-      final restriction = config.widgets[widgetName];
+      final restriction = _restrictionForSymbol(config, symbolName);
       if (restriction == null) return;
 
       final matchesCurrentError = diagnostic.offset == nameToken.offset &&
@@ -130,6 +130,13 @@ class ForbiddenWidgetFix extends DartFix {
     );
     _autoImportCache[cacheKey] = detectedImport;
     return detectedImport;
+  }
+
+  WidgetRestriction? _restrictionForSymbol(
+    WidgetGuardConfig config,
+    String symbolName,
+  ) {
+    return config.widgets[symbolName] ?? config.classes[symbolName];
   }
 
   String? _normalizeImportPath(String? value) {
