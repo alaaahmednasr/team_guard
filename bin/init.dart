@@ -55,7 +55,8 @@ void main(List<String> args) {
   }
 
   final config = WidgetGuardConfig.load(configFile.parent.path);
-  final scaffoldResult = _createReplacementFiles(configFile.parent.path, config);
+  final scaffoldResult =
+      _createReplacementFiles(configFile.parent.path, config);
   if (scaffoldResult.createdFiles.isNotEmpty) {
     stdout.writeln('Created replacement files in lib/core:');
     for (final filePath in scaffoldResult.createdFiles) {
