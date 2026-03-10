@@ -22,7 +22,7 @@ Add dependencies to your app's `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  team_guard: ^1.0.9
+  team_guard: ^1.0.10
 ```
 
 Then run:
@@ -35,9 +35,19 @@ flutter pub get
 dart pub get
 ```
 
+`pub get` downloads the package only. It does not auto-configure your project files.
+
 ## Setup (Required)
 
-1. Initialize Team Guard in your project root:
+Run one command in your project root:
+
+```bash
+dart run team_guard:setup
+```
+
+This runs `team_guard:init` first, then starts `custom_lint`.
+
+Manual split (equivalent):
 
 ```bash
 dart run team_guard:init
@@ -49,15 +59,13 @@ This command:
 - adds `custom_lint` plugin under `analyzer.plugins` if missing
 - generates missing replacement files in `lib/core` based on `team_guard.yaml`
 
-2. Run the linter:
-
 ```bash
 dart run custom_lint
 ```
 
-`custom_lint` is included transitively by `team_guard`, so the command is available after `pub get`.
+`custom_lint` is included transitively by `team_guard`, so `dart run custom_lint` is available after `pub get` without adding `custom_lint` manually to your `pubspec.yaml`.
 
-3. If your IDE still does not show lints, restart analysis server/IDE.
+If your IDE still does not show lints, restart analysis server/IDE.
 
 ## Configuration
 

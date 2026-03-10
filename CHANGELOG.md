@@ -1,3 +1,8 @@
+## 1.0.10
+
+- Add `dart run team_guard:setup` command to run `team_guard:init` then `custom_lint` in one step.
+- Update README setup flow to prefer single-command setup while keeping manual steps documented.
+
 ## 1.0.9
 
 - Add `custom_lint` to runtime dependencies so `dart run custom_lint` is available after installing `team_guard`.
@@ -56,5 +61,6 @@
 ## 1.0.0
 
 - Initial version.
+
 
 
