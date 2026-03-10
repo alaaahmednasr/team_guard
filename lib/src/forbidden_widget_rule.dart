@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:analyzer/dart/ast/ast.dart' show ClassDeclaration;
+import 'package:analyzer/dart/ast/ast.dart'
+    show ClassDeclaration, ConstructorName, NamedType;
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart' show DiagnosticReporter;
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -49,7 +50,7 @@ class ForbiddenWidgetRule extends DartLintRule {
       final typeNode = node.constructorName.type;
       final symbolName = typeNode.name.lexeme;
 
-      final restriction = _restrictionForSymbol(config, symbolName);
+      final restriction = config.restrictionForSymbol(symbolName);
       if (restriction == null) return;
 
       final replacement = restriction.replacement;
@@ -75,8 +76,7 @@ class ForbiddenWidgetRule extends DartLintRule {
 
     context.registry.addPrefixedIdentifier((node) {
       final className = node.prefix.name;
-      final restriction =
-          config.classes[className] ?? config.widgets[className];
+      final restriction = config.restrictionForSymbol(className);
       if (restriction == null) return;
 
       final replacement = restriction.replacement;
@@ -89,6 +89,31 @@ class ForbiddenWidgetRule extends DartLintRule {
 
       reporter.atToken(
         node.prefix.token,
+        _codeForSeverity(restriction.severity),
+        arguments: [message],
+      );
+    });
+
+    context.registry.addNamedType((node) {
+      if (_isConstructorType(node)) {
+        // Already covered by instance creation checks.
+        return;
+      }
+
+      final symbolName = node.name.lexeme;
+      final restriction = config.restrictionForSymbol(symbolName);
+      if (restriction == null) return;
+
+      final replacement = restriction.replacement;
+      final enclosingClassName =
+          node.thisOrAncestorOfType<ClassDeclaration>()?.name.lexeme;
+      if (enclosingClassName == replacement) return;
+
+      final message =
+          '$symbolName is restricted. A custom class is available: $replacement. Use it instead.';
+
+      reporter.atToken(
+        node.name,
         _codeForSeverity(restriction.severity),
         arguments: [message],
       );
@@ -107,10 +132,8 @@ class ForbiddenWidgetRule extends DartLintRule {
     }
   }
 
-  WidgetRestriction? _restrictionForSymbol(
-    WidgetGuardConfig config,
-    String symbolName,
-  ) {
-    return config.widgets[symbolName] ?? config.classes[symbolName];
+  bool _isConstructorType(NamedType node) {
+    final parent = node.parent;
+    return parent is ConstructorName && identical(parent.type, node);
   }
 }

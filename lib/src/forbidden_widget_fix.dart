@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:analyzer/dart/ast/ast.dart' show ClassDeclaration;
+import 'package:analyzer/dart/ast/ast.dart'
+    show ClassDeclaration, ConstructorName, NamedType;
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'config_loader.dart';
 
@@ -25,7 +26,7 @@ class ForbiddenWidgetFix extends DartFix {
       final nameToken = typeNode.name;
       final symbolName = nameToken.lexeme;
 
-      final restriction = _restrictionForSymbol(config, symbolName);
+      final restriction = config.restrictionForSymbol(symbolName);
       if (restriction == null) return;
 
       final matchesCurrentError = diagnostic.offset == nameToken.offset &&
@@ -64,8 +65,7 @@ class ForbiddenWidgetFix extends DartFix {
     });
     context.registry.addPrefixedIdentifier((node) {
       final className = node.prefix.name;
-      final restriction =
-          config.classes[className] ?? config.widgets[className];
+      final restriction = config.restrictionForSymbol(className);
       if (restriction == null) return;
 
       final nameToken = node.prefix.token;
@@ -96,6 +96,49 @@ class ForbiddenWidgetFix extends DartFix {
 
         builder.addSimpleReplacement(
           node.prefix.sourceRange,
+          replacement,
+        );
+      });
+    });
+
+    context.registry.addNamedType((node) {
+      if (_isConstructorType(node)) {
+        // Already handled by instance creation fix.
+        return;
+      }
+
+      final nameToken = node.name;
+      final symbolName = nameToken.lexeme;
+      final restriction = config.restrictionForSymbol(symbolName);
+      if (restriction == null) return;
+
+      final matchesCurrentError = diagnostic.offset == nameToken.offset &&
+          diagnostic.length == nameToken.length;
+      if (!matchesCurrentError) return;
+
+      final replacement = restriction.replacement;
+      final importPath = _resolveImportPath(
+        explicitImport: restriction.import,
+        replacement: replacement,
+        projectRoot: projectRoot,
+        packageName: packageName,
+      );
+      final enclosingClassName =
+          node.thisOrAncestorOfType<ClassDeclaration>()?.name.lexeme;
+      if (enclosingClassName == replacement) return;
+
+      final changeBuilder = reporter.createChangeBuilder(
+        message: 'Use $replacement',
+        priority: 1,
+      );
+
+      changeBuilder.addDartFileEdit((builder) {
+        if (importPath != null && importPath.isNotEmpty) {
+          builder.importLibrary(Uri.parse(importPath));
+        }
+
+        builder.addSimpleReplacement(
+          node.name.sourceRange,
           replacement,
         );
       });
@@ -132,11 +175,9 @@ class ForbiddenWidgetFix extends DartFix {
     return detectedImport;
   }
 
-  WidgetRestriction? _restrictionForSymbol(
-    WidgetGuardConfig config,
-    String symbolName,
-  ) {
-    return config.widgets[symbolName] ?? config.classes[symbolName];
+  bool _isConstructorType(NamedType node) {
+    final parent = node.parent;
+    return parent is ConstructorName && identical(parent.type, node);
   }
 
   String? _normalizeImportPath(String? value) {

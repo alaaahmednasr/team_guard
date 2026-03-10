@@ -326,10 +326,21 @@ String _classTemplate(String className, {required bool isFlutterProject}) {
         'class $className {\n'
         '  const $className._();\n'
         '\n'
-        '  static const Color primary = Color(0xFF6200EE);\n'
-        '  static const Color primaryVariant = Color(0xFF3700B3);\n'
-        '  static const Color secondary = Color(0xFF03DAC6);\n'
-        '  static const Color secondaryVariant = Color(0xFF018786);\n'
+        '  // Supports mixing both forms:\n'
+        '  // - ARGB int values (0xAARRGGBB)\n'
+        '  // - Color(...) constants\n'
+        '  static const primary = 0xFF6200EE;\n'
+        '  static const primaryVariant = 0xFF3700B3;\n'
+        '  static const secondary = 0xFF03DAC6;\n'
+        '  static const secondaryVariant = 0xFF018786;\n'
+        '  static const text = Color(0xFF000000);\n'
+        '  static Color overlay = const Color.fromARGB(5, 2, 4, 5);\n'
+        '\n'
+        '  static Color colorOf(Object value) {\n'
+        '    if (value is Color) return value;\n'
+        '    if (value is int) return Color(value);\n'
+        "    throw ArgumentError.value(value, 'value', 'Expected a Color or an ARGB int (0xAARRGGBB).');\n"
+        '  }\n'
         '}\n';
   }
 

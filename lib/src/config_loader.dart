@@ -22,6 +22,17 @@ class WidgetGuardConfig {
     required this.classes,
   });
 
+  WidgetRestriction? restrictionForSymbol(String symbolName) {
+    final direct = widgets[symbolName] ?? classes[symbolName];
+    if (direct != null) {
+      return direct;
+    }
+
+    final normalized = _normalizeSymbol(symbolName);
+    return _findByNormalized(widgets, normalized) ??
+        _findByNormalized(classes, normalized);
+  }
+
   static WidgetGuardConfig load(String startPath) {
     final file = ensureConfigFile(startPath);
 
@@ -133,6 +144,22 @@ class WidgetGuardConfig {
       restrictions[key] = restriction;
     }
     return restrictions;
+  }
+
+  static WidgetRestriction? _findByNormalized(
+    Map<String, WidgetRestriction> source,
+    String normalizedSymbol,
+  ) {
+    for (final entry in source.entries) {
+      if (_normalizeSymbol(entry.key) == normalizedSymbol) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
+  static String _normalizeSymbol(String value) {
+    return value.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toLowerCase();
   }
 
   static const _defaultConfigTemplate = '''

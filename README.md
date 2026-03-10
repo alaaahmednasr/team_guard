@@ -24,7 +24,7 @@ Add dependencies to your app's `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  team_guard: ^1.0.11
+  team_guard: ^1.0.12
 ```
 
 Then run:
@@ -80,8 +80,9 @@ widgets:
     # import: package:your_app/widgets/custom_text.dart
     severity: error
 
-  GestureDetector:
-    replacement: AppGestureDetector
+  ElevatedButton:
+    replacement: AppElevatedButton
+    # import: package:your_app/core/ui/buttons/app_elevated_button.dart
     severity: error
 
 classes:
@@ -89,9 +90,48 @@ classes:
     replacement: AppColors
     # import: package:your_app/theme/app_colors.dart
     severity: error
+
+  Dio:
+    replacement: AppDio
+    # import: package:your_app/core/network/app_dio.dart
+    severity: error
+
+  GetIt:
+    replacement: AppLocator
+    # import: package:your_app/core/di/app_locator.dart
+    severity: error
+
+  Cubit:
+    replacement: AppCubit
+    # import: package:your_app/core/state/app_cubit.dart
+    severity: error
 ```
 
 Full setup example: [`example/team_guard_example.dart`](example/team_guard_example.dart)
+
+Class-name matching is tolerant for separators/case, so values like `GetIt`, `get_it`, or `getit` in config are treated as the same symbol.
+
+### Minimal Policy Example
+
+If you only need a compact setup, use:
+
+```yaml
+widgets:
+  Text:
+    replacement: CustomText
+    severity: error
+  ElevatedButton:
+    replacement: AppElevatedButton
+    severity: error
+
+classes:
+  Colors:
+    replacement: AppColors
+    severity: error
+  Dio:
+    replacement: AppDio
+    severity: error
+```
 
 When you run `dart run team_guard:init`, replacement stubs are created automatically in `lib/core` (for example, `CustomText` -> `lib/core/custom_text.dart`) if the files do not already exist.
 
@@ -128,11 +168,27 @@ import 'package:flutter/material.dart';
 class AppColors {
   const AppColors._();
 
-  static const Color primary = Color(0xFF6200EE);
-  static const Color primaryVariant = Color(0xFF3700B3);
-  static const Color secondary = Color(0xFF03DAC6);
-  static const Color secondaryVariant = Color(0xFF018786);
+  static const primary = 0xFF6200EE;
+  static const primaryVariant = 0xFF3700B3;
+  static const secondary = 0xFF03DAC6;
+  static const secondaryVariant = 0xFF018786;
+  static const text = Color(0xFF000000);
+  static Color overlay = const Color.fromARGB(5, 2, 4, 5);
+
+  static Color colorOf(Object value) {
+    if (value is Color) return value;
+    if (value is int) return Color(value);
+    throw ArgumentError.value(value, 'value', 'Expected a Color or an ARGB int (0xAARRGGBB).');
+  }
 }
+```
+
+Usage example when an API requires `Color`:
+
+```dart
+colorScheme: ColorScheme.fromSeed(
+  seedColor: AppColors.colorOf(AppColors.primary),
+),
 ```
 
 ### Import Field Format

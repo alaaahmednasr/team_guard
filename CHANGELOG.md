@@ -1,3 +1,14 @@
+## 1.0.12
+
+- Enforce class restrictions in type references (`NamedType`) such as:
+  - `extends Cubit<MyState>`
+  - `implements Cubit<MyState>`
+  - type annotations and generic arguments using restricted classes
+- Keep constructor checks/fixes and avoid duplicate diagnostics for `InstanceCreationExpression`.
+- Add tolerant class-name matching in config (`GetIt`, `get_it`, `getit` are treated equivalently).
+- Update README with examples for restricting classes like `Dio`, `GetIt`, and `Cubit`.
+- Add a minimal policy example (`Text`, `ElevatedButton`, `Colors`, `Dio`) and clarify mixed `int`/`Color` usage in color templates.
+
 ## 1.0.11
 
 - Enforce class restrictions in constructor usage as well as prefixed access.
