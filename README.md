@@ -24,7 +24,7 @@ Add dependencies to your app's `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  team_guard: ^1.0.15
+  team_guard: ^1.0.16
 ```
 
 Then run:
@@ -59,7 +59,9 @@ This command:
 - generates `team_guard.yaml` automatically in the project root (if missing)
 - creates `analysis_options.yaml` if missing
 - adds `custom_lint` plugin under `analyzer.plugins` if missing
-- generates missing replacement files in `lib/core` based on `team_guard.yaml` (never overwrites existing files)
+- generates missing replacement files in `lib/core` based on `team_guard.yaml`
+- skips generation when a file with the same name already exists anywhere under `lib/`
+- never overwrites existing files
 
 ```bash
 dart run custom_lint
@@ -133,10 +135,12 @@ classes:
     severity: error
 ```
 
-When you run `dart run team_guard:init`, replacement stubs are created automatically in `lib/core` (for example, `CustomText` -> `lib/core/custom_text.dart`) if the files do not already exist.
+When you run `dart run team_guard:init`, replacement stubs are created automatically in `lib/core` (for example, `CustomText` -> `lib/core/custom_text.dart`) only when no file with the same name already exists anywhere under `lib/`.
 
-If a file already exists, Team Guard keeps your current file unchanged.  
-To regenerate with the latest template, either edit the file manually or delete it and run `dart run team_guard:init` again.
+If `lib/widgets/custom_text.dart` already exists, Team Guard will not create `lib/core/custom_text.dart`.
+
+If a matching file already exists, Team Guard keeps your current file unchanged.
+To regenerate with the latest template, either edit the file manually or delete/rename it and run `dart run team_guard:init` again.
 
 ### Generated Starter Templates (Flutter projects)
 

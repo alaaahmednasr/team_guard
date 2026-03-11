@@ -1,3 +1,9 @@
+## 1.0.16
+
+- Update `team_guard:init` scaffolding to skip generating replacement files when a file with the same name already exists anywhere under `lib/`.
+- Avoid creating `lib/core` unless at least one new replacement file actually needs to be generated.
+- Refresh README to document the new duplicate-skip behavior and latest install version.
+
 ## 1.0.15
 
 - Change generated Flutter color-class templates to use `static const Color ... = Color(...)` fields directly.

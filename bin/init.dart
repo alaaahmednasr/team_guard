@@ -218,10 +218,12 @@ _ScaffoldResult _createReplacementFiles(
   String projectRoot,
   WidgetGuardConfig config,
 ) {
-  final coreDir = Directory(
-    '$projectRoot${Platform.pathSeparator}lib${Platform.pathSeparator}core',
+  final libDir = Directory(
+    '$projectRoot${Platform.pathSeparator}lib',
   );
-  coreDir.createSync(recursive: true);
+  final coreDir = Directory(
+    '${libDir.path}${Platform.pathSeparator}core',
+  );
   final isFlutterProject = _isFlutterProject(projectRoot);
 
   final replacements = <String, _ReplacementKind>{};
@@ -244,6 +246,14 @@ _ScaffoldResult _createReplacementFiles(
     if (replacement.isEmpty) continue;
 
     final fileName = '${_toSnakeCase(replacement)}.dart';
+    if (_fileExistsInLib(libDir, fileName)) {
+      continue;
+    }
+
+    if (!coreDir.existsSync()) {
+      coreDir.createSync(recursive: true);
+    }
+
     final filePath = '${coreDir.path}${Platform.pathSeparator}$fileName';
     final file = File(filePath);
     if (file.existsSync()) {
@@ -262,6 +272,25 @@ _ScaffoldResult _createReplacementFiles(
   }
 
   return _ScaffoldResult(createdFiles: createdFiles);
+}
+
+bool _fileExistsInLib(Directory libDir, String fileName) {
+  if (!libDir.existsSync()) return false;
+
+  for (final entity in libDir.listSync(recursive: true, followLinks: false)) {
+    if (entity is! File) continue;
+    if (_basename(entity.path) == fileName) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+String _basename(String path) {
+  final normalized = path.replaceAll('\\', '/');
+  final index = normalized.lastIndexOf('/');
+  return index == -1 ? normalized : normalized.substring(index + 1);
 }
 
 String _toSnakeCase(String input) {
