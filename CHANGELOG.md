@@ -1,3 +1,7 @@
+## 1.0.17
+
+- Simplify README setup instructions to use `dart run team_guard:setup` as the primary command instead of documenting separate init/lint commands.
+
 ## 1.0.16
 
 - Update `team_guard:init` scaffolding to skip generating replacement files when a file with the same name already exists anywhere under `lib/`.

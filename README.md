@@ -24,7 +24,7 @@ Add dependencies to your app's `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  team_guard: ^1.0.16
+  team_guard: ^1.0.17
 ```
 
 Then run:
@@ -47,14 +47,6 @@ Run one command in your project root:
 dart run team_guard:setup
 ```
 
-This runs `team_guard:init` first, then starts `custom_lint`.
-
-Manual split (equivalent):
-
-```bash
-dart run team_guard:init
-```
-
 This command:
 - generates `team_guard.yaml` automatically in the project root (if missing)
 - creates `analysis_options.yaml` if missing
@@ -62,18 +54,13 @@ This command:
 - generates missing replacement files in `lib/core` based on `team_guard.yaml`
 - skips generation when a file with the same name already exists anywhere under `lib/`
 - never overwrites existing files
-
-```bash
-dart run custom_lint
-```
-
-`custom_lint` is included transitively by `team_guard`, so `dart run custom_lint` is available after `pub get` without adding `custom_lint` manually to your `pubspec.yaml`.
+- starts `custom_lint`
 
 If your IDE still does not show lints, restart analysis server/IDE.
 
 ## Configuration
 
-After running `dart run team_guard:init`, you will find `team_guard.yaml` generated in your project root. Edit it as needed:
+After running `dart run team_guard:setup`, you will find `team_guard.yaml` generated in your project root. Edit it as needed:
 
 ```yaml
 widgets:
@@ -135,12 +122,12 @@ classes:
     severity: error
 ```
 
-When you run `dart run team_guard:init`, replacement stubs are created automatically in `lib/core` (for example, `CustomText` -> `lib/core/custom_text.dart`) only when no file with the same name already exists anywhere under `lib/`.
+When you run `dart run team_guard:setup`, replacement stubs are created automatically in `lib/core` (for example, `CustomText` -> `lib/core/custom_text.dart`) only when no file with the same name already exists anywhere under `lib/`.
 
 If `lib/widgets/custom_text.dart` already exists, Team Guard will not create `lib/core/custom_text.dart`.
 
 If a matching file already exists, Team Guard keeps your current file unchanged.
-To regenerate with the latest template, either edit the file manually or delete/rename it and run `dart run team_guard:init` again.
+To regenerate with the latest template, either edit the file manually or delete/rename it and run `dart run team_guard:setup` again.
 
 ### Generated Starter Templates (Flutter projects)
 
@@ -252,7 +239,7 @@ analyzer:
 
 ### `team_guard.yaml` was not generated
 
-- Run `dart run custom_lint` from the project root.
+- Run `dart run team_guard:setup` from the project root.
 - If still missing, create `team_guard.yaml` manually using the example above.
 
 ## To Uninstall
