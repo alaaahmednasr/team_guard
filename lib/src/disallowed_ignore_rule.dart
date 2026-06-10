@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/ast/token.dart' show CommentToken;
+import 'package:analyzer/dart/ast/token.dart' show CommentToken, Token;
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart' show DiagnosticReporter;
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -20,7 +20,7 @@ class DisallowedIgnoreRule extends DartLintRule {
     CustomLintContext context,
   ) {
     context.registry.addCompilationUnit((node) {
-      var token = node.beginToken;
+      Token? token = node.beginToken;
       while (token != null && !token.isEof) {
         var comment = token.precedingComments;
         while (comment != null) {
