@@ -5,6 +5,7 @@ library team_guard;
 
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'src/forbidden_widget_rule.dart';
+import 'src/disallowed_ignore_rule.dart';
 
 /// Creates the Team Guard lint plugin instance for `custom_lint`.
 PluginBase createPlugin() => _WidgetGuardPlugin();
@@ -13,5 +14,6 @@ class _WidgetGuardPlugin extends PluginBase {
   @override
   List<DartLintRule> getLintRules(CustomLintConfigs configs) => [
         ForbiddenWidgetRule(),
+        DisallowedIgnoreRule(),
       ];
 }
