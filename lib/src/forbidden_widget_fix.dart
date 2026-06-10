@@ -17,6 +17,9 @@ class ForbiddenWidgetFix extends DartFix {
   ) {
     final root = Directory(resolver.source.fullName).parent.parent.path;
     final config = WidgetGuardConfig.load(root);
+    if (config.isPathIgnored(resolver.source.fullName)) {
+      return;
+    }
     final projectRoot = _findProjectRoot(resolver.source.fullName) ?? root;
     final packageName = _readPackageName(projectRoot);
     final diagnostic = analysisError as dynamic;
@@ -28,6 +31,7 @@ class ForbiddenWidgetFix extends DartFix {
 
       final restriction = config.restrictionForSymbol(symbolName);
       if (restriction == null) return;
+      if (config.isPathMatchingPatterns(resolver.source.fullName, restriction.ignore)) return;
 
       final matchesCurrentError = diagnostic.offset == nameToken.offset &&
           diagnostic.length == nameToken.length;
@@ -67,6 +71,7 @@ class ForbiddenWidgetFix extends DartFix {
       final className = node.prefix.name;
       final restriction = config.restrictionForSymbol(className);
       if (restriction == null) return;
+      if (config.isPathMatchingPatterns(resolver.source.fullName, restriction.ignore)) return;
 
       final nameToken = node.prefix.token;
       final matchesCurrentError = diagnostic.offset == nameToken.offset &&
@@ -111,6 +116,7 @@ class ForbiddenWidgetFix extends DartFix {
       final symbolName = nameToken.lexeme;
       final restriction = config.restrictionForSymbol(symbolName);
       if (restriction == null) return;
+      if (config.isPathMatchingPatterns(resolver.source.fullName, restriction.ignore)) return;
 
       final matchesCurrentError = diagnostic.offset == nameToken.offset &&
           diagnostic.length == nameToken.length;

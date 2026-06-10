@@ -45,6 +45,9 @@ class ForbiddenWidgetRule extends DartLintRule {
     final root = Directory(resolver.source.fullName).parent.parent.path;
 
     final config = WidgetGuardConfig.load(root);
+    if (config.isPathIgnored(resolver.source.fullName)) {
+      return;
+    }
 
     context.registry.addInstanceCreationExpression((node) {
       final typeNode = node.constructorName.type;
@@ -52,6 +55,7 @@ class ForbiddenWidgetRule extends DartLintRule {
 
       final restriction = config.restrictionForSymbol(symbolName);
       if (restriction == null) return;
+      if (config.isPathMatchingPatterns(resolver.source.fullName, restriction.ignore)) return;
 
       final replacement = restriction.replacement;
       final enclosingClassName =
@@ -78,6 +82,7 @@ class ForbiddenWidgetRule extends DartLintRule {
       final className = node.prefix.name;
       final restriction = config.restrictionForSymbol(className);
       if (restriction == null) return;
+      if (config.isPathMatchingPatterns(resolver.source.fullName, restriction.ignore)) return;
 
       final replacement = restriction.replacement;
       final enclosingClassName =
@@ -103,6 +108,7 @@ class ForbiddenWidgetRule extends DartLintRule {
       final symbolName = node.name.lexeme;
       final restriction = config.restrictionForSymbol(symbolName);
       if (restriction == null) return;
+      if (config.isPathMatchingPatterns(resolver.source.fullName, restriction.ignore)) return;
 
       final replacement = restriction.replacement;
       final enclosingClassName =
