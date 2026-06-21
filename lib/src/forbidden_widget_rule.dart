@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart'
-    show ClassDeclaration, ConstructorName, NamedType;
+    show ClassDeclaration, ConstructorName, NamedType, MethodInvocation, SimpleIdentifier, PrefixedIdentifier;
 import 'package:analyzer/error/error.dart' show DiagnosticSeverity;
 import 'package:analyzer/error/listener.dart' show DiagnosticReporter;
 import 'package:custom_lint_builder/custom_lint_builder.dart';
@@ -94,6 +94,42 @@ class ForbiddenWidgetRule extends DartLintRule {
 
       reporter.atToken(
         node.prefix.token,
+        _codeForSeverity(restriction.severity),
+        arguments: [message],
+      );
+    });
+
+    context.registry.addMethodInvocation((node) {
+      final target = node.target;
+      if (target == null) return;
+
+      String? className;
+      var errorToken;
+
+      if (target is SimpleIdentifier) {
+        className = target.name;
+        errorToken = target.token;
+      } else if (target is PrefixedIdentifier) {
+        className = target.identifier.name;
+        errorToken = target.identifier.token;
+      }
+
+      if (className == null || errorToken == null) return;
+
+      final restriction = config.restrictionForSymbol(className);
+      if (restriction == null) return;
+      if (config.isPathMatchingPatterns(resolver.source.fullName, restriction.ignore)) return;
+
+      final replacement = restriction.replacement;
+      final enclosingClassName =
+          node.thisOrAncestorOfType<ClassDeclaration>()?.name.lexeme;
+      if (enclosingClassName == replacement) return;
+
+      final message =
+          '$className is restricted. A custom class is available: $replacement. Use it instead.';
+
+      reporter.atToken(
+        errorToken,
         _codeForSeverity(restriction.severity),
         arguments: [message],
       );

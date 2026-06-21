@@ -1,4 +1,6 @@
 import 'package:test/test.dart';
+import 'package:analyzer/dart/analysis/utilities.dart' show parseString;
+import 'package:analyzer/dart/ast/token.dart' show CommentToken, Token;
 import 'package:team_guard/src/config_loader.dart';
 
 void main() {
@@ -99,6 +101,26 @@ void main() {
       final restriction = config.restrictionForSymbol('Text')!;
       expect(config.isPathMatchingPatterns('/project/lib/legacy/old_view.dart', restriction.ignore), isTrue);
       expect(config.isPathMatchingPatterns('/project/lib/new_view.dart', restriction.ignore), isFalse);
+    });
+
+    test('Token comment scanning finds ignore comments', () {
+      final result = parseString(content: '''
+// ignore_for_file: team_guard.forbidden_widget
+
+void main() {}
+''');
+      final unit = result.unit;
+      Token? token = unit.beginToken;
+      final comments = <String>[];
+      while (token != null && !token.isEof) {
+        var comment = token.precedingComments;
+        while (comment != null) {
+          comments.add(comment.lexeme);
+          comment = comment.next as CommentToken?;
+        }
+        token = token.next;
+      }
+      expect(comments, contains(contains('team_guard.forbidden_widget')));
     });
   });
 }
