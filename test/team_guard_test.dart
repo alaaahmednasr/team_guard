@@ -122,5 +122,25 @@ void main() {}
       }
       expect(comments, contains(contains('team_guard.forbidden_widget')));
     });
+
+    test('Static helper class prefix check works correctly', () {
+      final config = WidgetGuardConfig(
+        widgets: {
+          'showDatePicker': WidgetRestriction(
+            replacement: 'DatePickerHelper.pickDate',
+          )
+        },
+        classes: {},
+        ignore: [],
+        projectRoot: '/project',
+      );
+
+      final restriction = config.restrictionForSymbol('showDatePicker')!;
+      final replacement = restriction.replacement;
+      
+      const enclosingClassName = 'DatePickerHelper';
+      final isAllowed = replacement == enclosingClassName || replacement.startsWith('$enclosingClassName.');
+      expect(isAllowed, isTrue);
+    });
   });
 }

@@ -101,32 +101,41 @@ class ForbiddenWidgetRule extends DartLintRule {
 
     context.registry.addMethodInvocation((node) {
       final target = node.target;
-      if (target == null) return;
 
-      String? className;
-      var errorToken;
+      String? symbolName;
+      dynamic errorToken;
 
-      if (target is SimpleIdentifier) {
-        className = target.name;
-        errorToken = target.token;
-      } else if (target is PrefixedIdentifier) {
-        className = target.identifier.name;
-        errorToken = target.identifier.token;
+      if (target == null) {
+        symbolName = node.methodName.name;
+        errorToken = node.methodName.token;
+      } else {
+        if (target is SimpleIdentifier) {
+          symbolName = target.name;
+          errorToken = target.token;
+        } else if (target is PrefixedIdentifier) {
+          symbolName = target.identifier.name;
+          errorToken = target.identifier.token;
+        }
       }
 
-      if (className == null || errorToken == null) return;
+      if (symbolName == null || errorToken == null) return;
 
-      final restriction = config.restrictionForSymbol(className);
+      final restriction = config.restrictionForSymbol(symbolName);
       if (restriction == null) return;
       if (config.isPathMatchingPatterns(resolver.source.fullName, restriction.ignore)) return;
 
       final replacement = restriction.replacement;
       final enclosingClassName =
           node.thisOrAncestorOfType<ClassDeclaration>()?.name.lexeme;
-      if (enclosingClassName == replacement) return;
+
+      if (enclosingClassName != null &&
+          (replacement == enclosingClassName ||
+              replacement.startsWith('$enclosingClassName.'))) {
+        return;
+      }
 
       final message =
-          '$className is restricted. A custom class is available: $replacement. Use it instead.';
+          '$symbolName is restricted. A custom helper is available: $replacement. Use it instead.';
 
       reporter.atToken(
         errorToken,

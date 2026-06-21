@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart'
-    show ClassDeclaration, ConstructorName, NamedType;
+    show ClassDeclaration, ConstructorName, NamedType, MethodInvocation, SimpleIdentifier, PrefixedIdentifier;
 import 'package:custom_lint_builder/custom_lint_builder.dart';
 import 'config_loader.dart';
 
@@ -145,6 +145,70 @@ class ForbiddenWidgetFix extends DartFix {
 
         builder.addSimpleReplacement(
           node.name.sourceRange,
+          replacement,
+        );
+      });
+    });
+
+    context.registry.addMethodInvocation((node) {
+      final target = node.target;
+      String? symbolName;
+      dynamic errorToken;
+
+      if (target == null) {
+        symbolName = node.methodName.name;
+        errorToken = node.methodName.token;
+      } else {
+        if (target is SimpleIdentifier) {
+          symbolName = target.name;
+          errorToken = target.token;
+        } else if (target is PrefixedIdentifier) {
+          symbolName = target.identifier.name;
+          errorToken = target.identifier.token;
+        }
+      }
+
+      if (symbolName == null || errorToken == null) return;
+
+      final restriction = config.restrictionForSymbol(symbolName);
+      if (restriction == null) return;
+      if (config.isPathMatchingPatterns(resolver.source.fullName, restriction.ignore)) return;
+
+      final matchesCurrentError = diagnostic.offset == errorToken.offset &&
+          diagnostic.length == errorToken.length;
+      if (!matchesCurrentError) return;
+
+      final replacement = restriction.replacement;
+      final enclosingClassName =
+          node.thisOrAncestorOfType<ClassDeclaration>()?.name.lexeme;
+
+      if (enclosingClassName != null &&
+          (replacement == enclosingClassName ||
+              replacement.startsWith('$enclosingClassName.'))) {
+        return;
+      }
+
+      final importPath = _resolveImportPath(
+        explicitImport: restriction.import,
+        replacement: replacement,
+        projectRoot: projectRoot,
+        packageName: packageName,
+      );
+
+      final changeBuilder = reporter.createChangeBuilder(
+        message: 'Use $replacement',
+        priority: 1,
+      );
+
+      changeBuilder.addDartFileEdit((builder) {
+        if (importPath != null && importPath.isNotEmpty) {
+          builder.importLibrary(Uri.parse(importPath));
+        }
+
+        final sourceRange = target == null ? node.methodName.sourceRange : target.sourceRange;
+
+        builder.addSimpleReplacement(
+          sourceRange,
           replacement,
         );
       });
