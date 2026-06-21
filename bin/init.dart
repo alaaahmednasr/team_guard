@@ -203,15 +203,31 @@ int _blockEndIndex(List<String> lines, int start, int indent) {
 
 int _indentOf(String line) => line.length - line.trimLeft().length;
 
-class _ScaffoldResult {
-  final List<String> createdFiles;
+class _ReplacementInfo {
+  final _ReplacementKind kind;
+  final String? importPath;
 
-  const _ScaffoldResult({required this.createdFiles});
+  const _ReplacementInfo({required this.kind, this.importPath});
 }
 
-enum _ReplacementKind {
-  widget,
-  helperClass,
+String? _getPackageName(String projectRoot) {
+  final pubspecFile = File('$projectRoot${Platform.pathSeparator}pubspec.yaml');
+  if (!pubspecFile.existsSync()) return null;
+  try {
+    final content = pubspecFile.readAsStringSync();
+    final match = RegExp(r'^\s*name\s*:\s*(\w+)', multiLine: true).firstMatch(content);
+    return match?.group(1);
+  } catch (_) {
+    return null;
+  }
+}
+
+String? _getFilePathFromPackageUri(String packageUri, String projectRoot, String packageName) {
+  if (!packageUri.startsWith('package:$packageName/')) {
+    return null;
+  }
+  final relativePath = packageUri.substring('package:$packageName/'.length);
+  return '$projectRoot${Platform.pathSeparator}lib${Platform.pathSeparator}${relativePath.replaceAll('/', Platform.pathSeparator)}';
 }
 
 _ScaffoldResult _createReplacementFiles(
@@ -225,18 +241,25 @@ _ScaffoldResult _createReplacementFiles(
     '${libDir.path}${Platform.pathSeparator}core',
   );
   final isFlutterProject = _isFlutterProject(projectRoot);
+  final packageName = _getPackageName(projectRoot);
 
-  final replacements = <String, _ReplacementKind>{};
+  final replacements = <String, _ReplacementInfo>{};
 
   for (final restriction in config.classes.values) {
     replacements.putIfAbsent(
       restriction.replacement,
-      () => _ReplacementKind.helperClass,
+      () => _ReplacementInfo(
+        kind: _ReplacementKind.helperClass,
+        importPath: restriction.import,
+      ),
     );
   }
 
   for (final restriction in config.widgets.values) {
-    replacements[restriction.replacement] = _ReplacementKind.widget;
+    replacements[restriction.replacement] = _ReplacementInfo(
+      kind: _ReplacementKind.widget,
+      importPath: restriction.import,
+    );
   }
 
   final createdFiles = <String>[];
@@ -244,6 +267,19 @@ _ScaffoldResult _createReplacementFiles(
   for (final entry in replacements.entries) {
     final replacement = entry.key.trim();
     if (replacement.isEmpty) continue;
+
+    final info = entry.value;
+
+    if (info.importPath != null && packageName != null) {
+      final filePath = _getFilePathFromPackageUri(
+        info.importPath!,
+        projectRoot,
+        packageName,
+      );
+      if (filePath != null && File(filePath).existsSync()) {
+        continue;
+      }
+    }
 
     final fileName = '${_toSnakeCase(replacement)}.dart';
     if (_fileExistsInLib(libDir, fileName)) {
@@ -260,7 +296,7 @@ _ScaffoldResult _createReplacementFiles(
       continue;
     }
 
-    final content = entry.value == _ReplacementKind.widget
+    final content = info.kind == _ReplacementKind.widget
         ? _widgetTemplate(replacement, isFlutterProject: isFlutterProject)
         : _classTemplate(
             replacement,
@@ -273,6 +309,7 @@ _ScaffoldResult _createReplacementFiles(
 
   return _ScaffoldResult(createdFiles: createdFiles);
 }
+
 
 bool _fileExistsInLib(Directory libDir, String fileName) {
   if (!libDir.existsSync()) return false;
