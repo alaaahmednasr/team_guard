@@ -203,6 +203,17 @@ int _blockEndIndex(List<String> lines, int start, int indent) {
 
 int _indentOf(String line) => line.length - line.trimLeft().length;
 
+class _ScaffoldResult {
+  final List<String> createdFiles;
+
+  const _ScaffoldResult({required this.createdFiles});
+}
+
+enum _ReplacementKind {
+  widget,
+  helperClass;
+}
+
 class _ReplacementInfo {
   final _ReplacementKind kind;
   final String? importPath;
@@ -267,6 +278,11 @@ _ScaffoldResult _createReplacementFiles(
   for (final entry in replacements.entries) {
     final replacement = entry.key.trim();
     if (replacement.isEmpty) continue;
+
+    final classRegExp = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$');
+    if (!classRegExp.hasMatch(replacement)) {
+      continue;
+    }
 
     final info = entry.value;
 
